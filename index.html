@@ -1,56 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>LocalStorage Sync Game</title>
-  <style>
-    body { background: #000; margin: 0; overflow: hidden; }
-    canvas { display: block; margin: auto; background: #111; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrowserRift - The Multi-Pane Arcade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card-bg {
+            background-color: #1a1a1a;
+        }
+        .tag {
+            background-color: #333;
+        }
+    </style>
 </head>
-<body>
-  <canvas id="game" width="600" height="400"></canvas>
+<body class="bg-black text-white">
 
-  <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+    <div class="container mx-auto px-4 py-12">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-2">Browser<span class="text-green-400">Rift</span></h1>
+            <p class="text-xl text-gray-400">An open-source arcade of games that break the browser wall.</p>
+            <p class="mt-4">Open any experience and then open it again in a new tab or window to play.</p>
+            <a href="https://github.com/rohan-27p/BrowserRift" target="_blank" class="mt-6 inline-block bg-green-500 text-black font-semibold py-2 px-6 rounded-lg hover:bg-green-400 transition">
+                Contribute on GitHub
+            </a>
+        </header>
 
-    // Shared game state
-    let player = JSON.parse(localStorage.getItem("playerState")) || {
-      x: 300,
-      y: 200,
-      color: `hsl(${Math.random() * 360}, 100%, 50%)` // unique per tab
-    };
+        <main id="game-gallery" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Games will be loaded here dynamically -->
+            <div class="text-center p-8 text-gray-500">Loading games...</div>
+        </main>
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = player.color;
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, 20, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    </div>
 
-    draw();
+    <script>
+        async function loadGames() {
+            const gallery = document.getElementById('game-gallery');
+            
+            try {
+                const response = await fetch('manifest.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const games = await response.json();
 
-    // Listen for changes from other tabs
-    window.addEventListener("storage", (event) => {
-      if (event.key === "playerState") {
-        player = JSON.parse(event.newValue);
-        draw();
-      }
-    });
+                gallery.innerHTML = ''; // Clear loading message
 
-    // Handle movement
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowUp") player.y -= 10;
-      if (e.key === "ArrowDown") player.y += 10;
-      if (e.key === "ArrowLeft") player.x -= 10;
-      if (e.key === "ArrowRight") player.x += 10;
+                if (games.length === 0) {
+                     gallery.innerHTML = '<p class="text-center text-gray-400 col-span-full">No games have been added yet. Be the first to contribute!</p>';
+                }
 
-      // Update local state + broadcast to other tabs
-      localStorage.setItem("playerState", JSON.stringify(player));
-      draw();
-    });
-  </script>
+                games.forEach(game => {
+                    const gameCard = document.createElement('div');
+                    gameCard.className = 'card-bg rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition-transform duration-300';
+                    
+                    gameCard.innerHTML = `
+                        <a href="/games/${game.folder}/index.html" target="_blank">
+                            <img class="w-full h-48 object-cover" src="/games/${game.folder}/${game.thumbnail}" alt="Thumbnail for ${game.title}">
+                        </a>
+                        <div class="p-6">
+                            <h2 class="text-2xl font-bold mb-2">${game.title}</h2>
+                            <p class="text-gray-400 mb-4 h-16">${game.description}</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${game.tags.map(tag => `<span class="tag text-gray-300 text-sm font-semibold px-3 py-1 rounded-full">${tag}</span>`).join('')}
+                            </div>
+                            <div class="mt-4 text-sm text-gray-500">
+                                Contributed by: <span class="font-semibold text-green-400">${game.author}</span>
+                            </div>
+                        </div>
+                    `;
+                    gallery.appendChild(gameCard);
+                });
+
+            } catch (error) {
+                console.error("Failed to load games manifest:", error);
+                gallery.innerHTML = '<p class="text-center text-red-500 col-span-full">Error: Could not load the games list. Please check that manifest.json exists and is valid.</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadGames);
+    </script>
 </body>
 </html>

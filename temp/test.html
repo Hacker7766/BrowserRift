@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LocalStorage Sync Game</title>
+  <style>
+    body { background: #000; margin: 0; overflow: hidden; }
+    canvas { display: block; margin: auto; background: #111; }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="600" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    // Shared game state
+    let player = JSON.parse(localStorage.getItem("playerState")) || {
+      x: 300,
+      y: 200,
+      color: `hsl(${Math.random() * 360}, 100%, 50%)` // unique per tab
+    };
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, 20, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    draw();
+
+    // Listen for changes from other tabs
+    window.addEventListener("storage", (event) => {
+      if (event.key === "playerState") {
+        player = JSON.parse(event.newValue);
+        draw();
+      }
+    });
+
+    // Handle movement
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") player.y -= 10;
+      if (e.key === "ArrowDown") player.y += 10;
+      if (e.key === "ArrowLeft") player.x -= 10;
+      if (e.key === "ArrowRight") player.x += 10;
+
+      // Update local state + broadcast to other tabs
+      localStorage.setItem("playerState", JSON.stringify(player));
+      draw();
+    });
+  </script>
+</body>
+</html>

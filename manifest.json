@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Portal Sync 3D",
+    "description": "A synchronized 3D energy sphere that you can rotate and view across two different browser windows in real-time.",
+    "folder": "portal-sync-3d",
+    "thumbnail": "thumbnail.png",
+    "author": "rohan-27p",
+    "tags": ["3D", "Three.js", "Visualizer"]
+  },
+  {
+    "title": "Rift Pong",
+    "description": "The classic game of Pong, but with a twist. Each player controls their paddle from a separate browser tab!",
+    "folder": "rift-pong",
+    "thumbnail": "thumbnail.png",
+    "author": "Community",
+    "tags": ["Game", "2-Player", "Classic"]
+  }
+]

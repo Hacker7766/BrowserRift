@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rift Pong</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        canvas {
+            background-color: #0d0d0d;
+            border: 2px solid #33ff33;
+            /* Visual indicator for which side it is */
+        }
+        #p1-canvas {
+             border-right: none;
+        }
+        #p2-canvas {
+             border-left: none;
+        }
+        .container {
+            position: relative;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+        .scores {
+            display: flex;
+            justify-content: space-around;
+            font-size: 3em;
+            font-weight: bold;
+        }
+        .player-info {
+            font-size: 1.2em;
+            color: #33ff33;
+            animation: blink 1.5s linear infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="pongCanvas" width="400" height="500"></canvas>
+        <div class="overlay">
+            <div class="header">
+                <div class="scores">
+                    <div id="player1-score">0</div>
+                    <div id="player2-score">0</div>
+                </div>
+            </div>
+            <div class="footer">
+                <div id="player-assignment" class="player-info">Assigning player...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pongCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const playerAssignmentEl = document.getElementById('player-assignment');
+        const p1ScoreEl = document.getElementById('player1-score');
+        const p2ScoreEl = document.getElementById('player2-score');
+
+        // The full game world dimensions
+        const WORLD_WIDTH = 800;
+        const WORLD_HEIGHT = 500;
+
+        let gameState = {
+            ball: { x: WORLD_WIDTH / 2, y: WORLD_HEIGHT / 2, dx: 5, dy: 5, radius: 10 },
+            paddle1: { x: 10, y: WORLD_HEIGHT / 2 - 50, width: 15, height: 100 },
+            paddle2: { x: WORLD_WIDTH - 25, y: WORLD_HEIGHT / 2 - 50, width: 15, height: 100 },
+            scores: { player1: 0, player2: 0 },
+            player1_id: null, 
+        };
+
+        let thisPlayer = null; // 'player1' (left) or 'player2' (right)
+
+        // --- Drawing Logic (Transformed for each window) ---
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (thisPlayer === 'player1') {
+                // --- Player 1 (Left Window) Rendering ---
+                // Draw left paddle
+                ctx.fillStyle = '#33ff33';
+                ctx.fillRect(gameState.paddle1.x, gameState.paddle1.y, gameState.paddle1.width, gameState.paddle1.height);
+                
+                // Draw ball only if it's on the left side
+                if (gameState.ball.x < WORLD_WIDTH / 2 + gameState.ball.radius) {
+                    ctx.beginPath();
+                    ctx.arc(gameState.ball.x, gameState.ball.y, gameState.ball.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            } else if (thisPlayer === 'player2') {
+                // --- Player 2 (Right Window) Rendering ---
+                // Draw right paddle (transforming world coords to local canvas coords)
+                const localPaddleX = gameState.paddle2.x - WORLD_WIDTH / 2;
+                ctx.fillStyle = '#33ff33';
+                ctx.fillRect(localPaddleX, gameState.paddle2.y, gameState.paddle2.width, gameState.paddle2.height);
+
+                // Draw ball only if it's on the right side (transforming coords)
+                if (gameState.ball.x > WORLD_WIDTH / 2 - gameState.ball.radius) {
+                    const localBallX = gameState.ball.x - WORLD_WIDTH / 2;
+                    ctx.beginPath();
+                    ctx.arc(localBallX, gameState.ball.y, gameState.ball.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+            
+            // Scores are always updated
+            p1ScoreEl.textContent = gameState.scores.player1;
+            p2ScoreEl.textContent = gameState.scores.player2;
+        }
+        
+        // --- Physics Logic (Only runs on Player 1's machine) ---
+        function update() {
+            if (thisPlayer !== 'player1') return;
+
+            // Move ball
+            gameState.ball.x += gameState.ball.dx;
+            gameState.ball.y += gameState.ball.dy;
+
+            // Wall collision (top/bottom)
+            if (gameState.ball.y + gameState.ball.radius > WORLD_HEIGHT || gameState.ball.y - gameState.ball.radius < 0) {
+                gameState.ball.dy = -gameState.ball.dy;
+            }
+
+            // Paddle 1 collision
+            if (gameState.ball.x - gameState.ball.radius < gameState.paddle1.x + gameState.paddle1.width &&
+                gameState.ball.y > gameState.paddle1.y && gameState.ball.y < gameState.paddle1.y + gameState.paddle1.height) {
+                gameState.ball.dx = -gameState.ball.dx * 1.05;
+            }
+
+            // Paddle 2 collision
+            if (gameState.ball.x + gameState.ball.radius > gameState.paddle2.x &&
+                gameState.ball.y > gameState.paddle2.y && gameState.ball.y < gameState.paddle2.y + gameState.paddle2.height) {
+                gameState.ball.dx = -gameState.ball.dx * 1.05;
+            }
+
+            // Scoring
+            if (gameState.ball.x > WORLD_WIDTH) {
+                gameState.scores.player1++;
+                resetBall();
+            } else if (gameState.ball.x < 0) {
+                gameState.scores.player2++;
+                resetBall();
+            }
+            
+            broadcastState();
+        }
+
+        function resetBall() {
+            gameState.ball.x = WORLD_WIDTH / 2;
+            gameState.ball.y = WORLD_HEIGHT / 2;
+            gameState.ball.dx = -gameState.ball.dx;
+            gameState.ball.dy = (Math.random() > 0.5 ? 1 : -1) * 5;
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- Synchronization Logic ---
+        function broadcastState() {
+            localStorage.setItem('rift-pong-state', JSON.stringify(gameState));
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'rift-pong-state') {
+                const newState = JSON.parse(e.newValue);
+                if (thisPlayer === 'player2') {
+                    const myPaddleY = gameState.paddle2.y;
+                    gameState = newState;
+                    gameState.paddle2.y = myPaddleY;
+                } else if (thisPlayer === 'player1') {
+                    gameState.paddle2.y = newState.paddle2.y;
+                }
+            }
+        });
+
+        // --- Player Input ---
+        document.addEventListener('keydown', (e) => {
+            if (thisPlayer === 'player1' && (e.key === 'w' || e.key === 'W')) {
+                gameState.paddle1.y = Math.max(0, gameState.paddle1.y - 25);
+            } else if (thisPlayer === 'player1' && (e.key === 's' || e.key === 'S')) {
+                gameState.paddle1.y = Math.min(WORLD_HEIGHT - gameState.paddle1.height, gameState.paddle1.y + 25);
+            }
+
+            if (thisPlayer === 'player2' && e.key === 'ArrowUp') {
+                gameState.paddle2.y = Math.max(0, gameState.paddle2.y - 25);
+            } else if (thisPlayer === 'player2' && e.key === 'ArrowDown') {
+                gameState.paddle2.y = Math.min(WORLD_HEIGHT - gameState.paddle2.height, gameState.paddle2.y + 25);
+            }
+            broadcastState();
+        });
+
+        // --- Initialization ---
+        function init() {
+            const storedState = localStorage.getItem('rift-pong-state');
+            
+            if (!storedState) {
+                thisPlayer = 'player1';
+                gameState.player1_id = 'connected';
+                playerAssignmentEl.textContent = "Left Screen: Use 'W' and 'S' keys to move.";
+                canvas.id = "p1-canvas";
+            } else {
+                thisPlayer = 'player2';
+                gameState = JSON.parse(storedState);
+                playerAssignmentEl.textContent = "Right Screen: Use Arrow Keys to move.";
+                canvas.id = "p2-canvas";
+            }
+
+            if (thisPlayer === 'player1') {
+                gameState.scores.player1 = 0;
+                gameState.scores.player2 = 0;
+            }
+            
+            broadcastState();
+            gameLoop();
+        }
+        
+        window.addEventListener('beforeunload', () => {
+            if(thisPlayer === 'player1') {
+                 localStorage.removeItem('rift-pong-state');
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
+
