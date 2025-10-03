@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3D Portal Sync Game</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: black; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js";
+    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/controls/OrbitControls.js";
+
+    // Scene setup
+    const scene = new THREE.Scene();
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 3;
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Glow material
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        color1: { value: new THREE.Color(Math.random() > 0.5 ? 0xff0000 : 0x00ff00) },
+        color2: { value: new THREE.Color(0x000000) },
+      },
+      vertexShader: `
+        varying vec3 vPos;
+        void main() {
+          vPos = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 color1;
+        uniform vec3 color2;
+        varying vec3 vPos;
+        void main() {
+          float intensity = length(vPos) * 0.5;
+          gl_FragColor = vec4(mix(color1, color2, intensity), 1.0);
+        }
+      `,
+      transparent: true,
+    });
+
+    // Sphere mesh
+    const geometry = new THREE.SphereGeometry(1, 64, 64);
+    const sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
+
+    // Light
+    const light = new THREE.PointLight(0xffffff, 1);
+    light.position.set(3, 3, 3);
+    scene.add(light);
+
+    // Controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+
+    // Sync state
+    let state = JSON.parse(localStorage.getItem("sphereState")) || {
+      rotation: { x: 0, y: 0, z: 0 },
+    };
+
+    // Apply saved rotation
+    sphere.rotation.set(state.rotation.x, state.rotation.y, state.rotation.z);
+
+    // Watch localStorage updates
+    window.addEventListener("storage", (e) => {
+      if (e.key === "sphereState") {
+        const data = JSON.parse(e.newValue);
+        sphere.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
+      }
+    });
+
+    // Animate
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Update rotation on user input
+    controls.addEventListener("change", () => {
+      state.rotation = {
+        x: sphere.rotation.x,
+        y: sphere.rotation.y,
+        z: sphere.rotation.z,
+      };
+      localStorage.setItem("sphereState", JSON.stringify(state));
+    });
+
+    // Responsive resize
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
