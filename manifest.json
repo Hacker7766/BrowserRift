@@ -1,8 +1,8 @@
 [
   {
-    "title": "Portal Sync 3D",
-    "description": "A synchronized 3D energy sphere that you can rotate and view across two different browser windows in real-time.",
-    "folder": "portal-sync-3d",
+    "title": "3D Cube Sync Motion",
+    "description": "A quick example of how one can synchronize a 3d scene across multiple windows using three.js and localStorage",
+    "folder": "3d-cube-sync",
     "thumbnail": "thumbnail.png",
     "author": "rohan-27p",
     "tags": ["3D", "Three.js", "Visualizer"]
