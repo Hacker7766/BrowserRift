@@ -23,17 +23,29 @@ Getting started with BrowserRift is simple! Follow these steps to experience the
    cd BrowserRift
    ```
 
-2. **Open the Main Page:**
+2. **Install `serve` globally (if you haven't already):**
 
-   - Open `index.html` in your web browser (Chrome, Firefox, Edge, or Safari recommended)
+   ```bash
+   npm install --global serve
+   ```
+
+   > **Note:** `serve` is a static file server that properly handles the local environment. You'll need Node.js installed (at least Node LTS). Learn more at [npm serve](https://www.npmjs.com/package/serve).
+
+3. **Start the local server:**
+
+   ```bash
+   serve
+   ```
+
+   This will start a local server (typically at `http://localhost:3000`). Open the URL shown in your terminal.
+
+4. **Launch a Game or Visualizer:**
+
    - You'll see a gallery of all available games and visualizers
-
-3. **Launch a Game or Visualizer:**
-
    - Click on any thumbnail in the gallery to open that experience
    - Each game/visualizer will open in a new window or tab
 
-4. **Experience the Multi-Window Magic:**
+5. **Experience the Multi-Window Magic:**
    - **For single-window experiences:** Simply interact and enjoy!
    - **For multi-window games:** Open multiple instances by clicking the launch button multiple times or duplicating the tab
    - Watch as actions in one window affect the others in real-time!
