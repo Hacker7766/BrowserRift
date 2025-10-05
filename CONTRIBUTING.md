@@ -1,16 +1,62 @@
 # Contributing to BrowserRift
 
-Thank you for your interest in contributing! We're excited to see what you build.
+Thank you for your interest in contributing! We're excited to see what you build. BrowserRift thrives on community contributions, and we welcome developers of all skill levels.
 
-## How to Make a Contribution
+## 📜 Code of Conduct
 
-1.  **Find an issue:** Please check our [Issues list](https://github.com/rohan-27p/BrowserRift/issues). We use labels like `good first issue` for newcomers and `hacktoberfest` for this event.
-2.  **Fork the repository:** Click the "Fork" button at the top right of this page.
-3.  **Clone your fork:** `git clone https://github.com/YOUR_USERNAME/BrowserRift.git`
-4.  **Create a new branch:** `git checkout -b your-feature-name`
-5.  **Make your changes:** Add your new game or fix a bug.
-6.  **Commit your changes:** `git commit -m "feat: Add my new awesome game"`
-7.  **Push to your branch:** `git push origin your-feature-name`
-8.  **Open a Pull Request:** Go to the original `BrowserRift` repository and open a PR from your forked branch.
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. We are committed to providing a welcoming and inclusive environment for everyone.
 
-Please provide a clear description of your changes in the PR. We will review it as soon as possible!
+## 🤝 How to Contribute
+
+1. **Find or create an issue** in our [Issues list](https://github.com/rohan-27p/BrowserRift/issues)
+
+   - Look for `good first issue` or `hacktoberfest` labels
+   - For new game ideas, create an issue first to discuss
+
+2. **Fork and clone** the repository
+
+3. **Create a branch** with a descriptive name (e.g., `fix-pong-collision` or `docs-improve-readme`)
+
+4. **Make your changes**
+
+   - Test thoroughly, especially for games (open multiple windows!)
+   - Follow our commit message guidelines below
+
+5. **Submit a Pull Request**
+   - Provide a clear description of changes
+   - Link related issues (e.g., "Closes #1")
+
+### 🎮 Contributing New Games/Visualizers
+
+For new games or visualizers:
+
+- Create an issue to discuss your idea first
+- Follow the structure guide in [README.md](README.md#how-to-add-a-new-gamevisualizer)
+- Keep all assets self-contained in your game folder
+- Test cross-window synchronization thoroughly
+- Update `manifest.json` with your entry
+
+## 💬 Commit Message Guidelines
+
+We use **[Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)** format:
+
+```
+<type>: <short description>
+```
+
+**Common types:**
+
+- `feat:` - New feature (e.g., `feat: Add breakout game`)
+- `fix:` - Bug fix (e.g., `fix: Correct pong ball collision detection`)
+- `docs:` - Documentation (e.g., `docs: Update README setup instructions`)
+- `style:` - Code formatting
+- `refactor:` - Code restructuring
+- `chore:` - Maintenance tasks
+
+## 🆘 Need Help?
+
+- **Questions?** Open an issue with the `question` label
+- **Stuck?** Comment on the issue you're working on
+- **New to open source?** Check out [First Contributions](https://github.com/firstcontributions/first-contributions)
+
+We're here to help! Don't hesitate to ask questions. Thank you for making BrowserRift better! 🚀
